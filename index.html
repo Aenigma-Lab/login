@@ -9,16 +9,19 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: #f1f1f1;
       padding: 40px;
-      max-width: 400px;
-      margin: auto;
+      max-width: 420px;
+      margin: 40px auto;
       background-color: white;
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
+
     h2 {
       text-align: center;
       color: #333;
+      margin-bottom: 20px;
     }
+
     input, button {
       width: 100%;
       padding: 12px;
@@ -28,6 +31,7 @@
       border: 1px solid #ccc;
       box-sizing: border-box;
     }
+
     button {
       background-color: #007BFF;
       color: white;
@@ -35,19 +39,23 @@
       cursor: pointer;
       font-weight: bold;
     }
+
     button:hover {
       background-color: #0056b3;
     }
+
     #result {
       margin-top: 20px;
       text-align: center;
       font-size: 16px;
     }
+
     #result a {
       color: #007BFF;
       text-decoration: none;
       font-weight: bold;
     }
+
     #result a:hover {
       text-decoration: underline;
     }
@@ -55,9 +63,11 @@
 </head>
 <body>
   <h2>Download Your File</h2>
+
   <input type="text" id="mobile" placeholder="Enter your Mobile Number" />
   <input type="password" id="password" placeholder="Enter your Password" />
   <button onclick="login()">Login & Download</button>
+
   <div id="result"></div>
 
   <script>
@@ -65,14 +75,14 @@
       const mobile = document.getElementById('mobile').value.trim();
       const password = document.getElementById('password').value.trim();
       const resultDiv = document.getElementById('result');
-      resultDiv.innerHTML = 'Validating...';
+      resultDiv.innerHTML = '🔄 Validating...';
 
       if (!mobile || !password) {
-        resultDiv.innerHTML = "<span style='color:red;'>Please enter both mobile number and password.</span>";
+        resultDiv.innerHTML = "<span style='color:red;'>❗ Please enter both mobile number and password.</span>";
         return;
       }
 
-      // Remove previous JSONP script if exists
+      // Remove previous JSONP script if any
       const oldScript = document.getElementById('jsonpScript');
       if (oldScript) oldScript.remove();
 
@@ -90,14 +100,16 @@
         }
       };
 
-      // Create JSONP script tag dynamically
+      // JSONP script setup
       const script = document.createElement('script');
       script.id = 'jsonpScript';
-
-      // Replace YOUR_DEPLOYMENT_ID with your actual script deployment ID or URL
       const baseUrl = 'https://script.google.com/macros/s/AKfycbw8dC804YdJfskrbLeNRbn7z-P5guYfGvGFyNswGoNShyyqB_6_ybNHf5qUp6T6P6eCmw/exec';
-
       script.src = `${baseUrl}?mobile=${encodeURIComponent(mobile)}&password=${encodeURIComponent(password)}&callback=handleResponse`;
+
+      // Error handler if Apps Script is unreachable
+      script.onerror = () => {
+        resultDiv.innerHTML = "<span style='color:red;'>⚠️ Failed to connect to server. Please try again later.</span>";
+      };
 
       document.body.appendChild(script);
     }
