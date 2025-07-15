@@ -8,28 +8,37 @@
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: #f1f1f1;
-      padding: 40px;
-      max-width: 420px;
+      padding: 40px 20px;
+      max-width: 450px;
       margin: 40px auto;
       background-color: white;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      box-shadow: 0 0 16px rgba(0,0,0,0.12);
+      color: #333;
     }
 
     h2 {
       text-align: center;
-      color: #333;
-      margin-bottom: 20px;
+      color: #222;
+      margin-bottom: 25px;
+      font-weight: 700;
     }
 
     input, button {
       width: 100%;
-      padding: 12px;
-      margin: 10px 0;
+      padding: 14px 16px;
+      margin: 12px 0;
       font-size: 16px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
+      border-radius: 8px;
+      border: 1.5px solid #ccc;
       box-sizing: border-box;
+      transition: border-color 0.3s ease;
+    }
+
+    input:focus {
+      border-color: #007BFF;
+      outline: none;
+      box-shadow: 0 0 6px rgba(0, 123, 255, 0.5);
     }
 
     button {
@@ -37,7 +46,8 @@
       color: white;
       border: none;
       cursor: pointer;
-      font-weight: bold;
+      font-weight: 700;
+      transition: background-color 0.3s ease;
     }
 
     button:hover {
@@ -45,24 +55,60 @@
     }
 
     #result {
-      margin-top: 20px;
-      text-align: center;
+      margin-top: 30px;
       font-size: 16px;
+      text-align: center;
+      min-height: 60px;
+    }
+
+    #result ul {
+      list-style-type: none;
+      padding: 0;
+      margin: 15px 0 0 0;
+      text-align: left;
+      max-height: 240px;
+      overflow-y: auto;
+      border-top: 1px solid #eee;
+      border-bottom: 1px solid #eee;
+    }
+
+    #result ul li {
+      margin: 10px 0;
+      padding: 8px 12px;
+      background: #f9f9f9;
+      border-radius: 6px;
+      transition: background-color 0.2s ease;
+    }
+
+    #result ul li:hover {
+      background-color: #e9f0ff;
     }
 
     #result a {
       color: #007BFF;
       text-decoration: none;
-      font-weight: bold;
+      font-weight: 600;
+      display: block;
+      word-break: break-word;
     }
 
     #result a:hover {
       text-decoration: underline;
     }
+
+    .error {
+      color: #d9534f;
+      font-weight: 600;
+    }
+
+    .success {
+      color: #28a745;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
-  <h2>Download Your File</h2>
+  <h2>Secure Document Download</h2>
 
   <input type="text" id="mobile" placeholder="Enter your Mobile Number" />
   <input type="password" id="password" placeholder="Enter your Password" />
@@ -78,7 +124,7 @@
       resultDiv.innerHTML = '🔄 Validating...';
 
       if (!mobile || !password) {
-        resultDiv.innerHTML = "<span style='color:red;'>❗ Please enter both mobile number and password.</span>";
+        resultDiv.innerHTML = "<span class='error'>❗ Please enter both mobile number and password.</span>";
         return;
       }
 
@@ -88,15 +134,21 @@
 
       // Define global callback function for JSONP response
       window.handleResponse = function(response) {
-        if (response.success) {
+        if (response.success && response.files && response.files.length > 0) {
+          let listItems = response.files.map(file => `
+            <li>
+              <a href="${file.fileUrl}" target="_blank" download="${file.fileName}">
+                📄 ${file.fileName}
+              </a>
+            </li>
+          `).join('');
+
           resultDiv.innerHTML = `
-            ✅ Login successful!<br><br>
-            <a href="${response.fileUrl}" target="_blank" download="${response.fileName}">
-              👉 Click here to download <b>${response.fileName}</b>
-            </a>
+            <span class="success">✅ Login successful! Download your files below:</span>
+            <ul>${listItems}</ul>
           `;
         } else {
-          resultDiv.innerHTML = "<span style='color:red;'>❌ Invalid mobile number or password.</span>";
+          resultDiv.innerHTML = "<span class='error'>❌ Invalid mobile number or password.</span>";
         }
       };
 
@@ -108,7 +160,7 @@
 
       // Error handler if Apps Script is unreachable
       script.onerror = () => {
-        resultDiv.innerHTML = "<span style='color:red;'>⚠️ Failed to connect to server. Please try again later.</span>";
+        resultDiv.innerHTML = "<span class='error'>⚠️ Failed to connect to server. Please try again later.</span>";
       };
 
       document.body.appendChild(script);
