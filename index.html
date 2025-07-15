@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Secure Document Portal</title>
+    <style>
+      body {
+        font-family: 'Segoe UI', sans-serif;
+        background: #f1f1f1;
+        padding: 50px;
+        max-width: 500px;
+        margin: auto;
+        border-radius: 10px;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      }
+      h2 {
+        color: #333;
+      }
+      input, button {
+        width: 100%;
+        padding: 10px;
+        margin-top: 10px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        font-size: 14px;
+      }
+      button {
+        background-color: #007BFF;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      #result {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Download Your File</h2>
+    <p>Please enter your registered mobile number and password:</p>
+
+    <input type="text" id="mobile" placeholder="Mobile Number" required />
+    <input type="password" id="password" placeholder="Password" required />
+    <button onclick="login()">Login & Download</button>
+
+    <div id="result"></div>
+
+    <script>
+      const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxu_q6ccUEHtHV-TEZI6kGXlEawbEhYMlTB1UoD4oWrL-5uISqXFA1WWa-pXPOhrRFVGg/exec";
+
+      async function login() {
+        const mobile = document.getElementById("mobile").value.trim();
+        const password = document.getElementById("password").value.trim();
+        const resultDiv = document.getElementById("result");
+
+        resultDiv.innerHTML = "🔄 Validating...";
+
+        const url = `${SCRIPT_URL}?mobile=${encodeURIComponent(mobile)}&password=${encodeURIComponent(password)}`;
+
+        try {
+          const response = await fetch(url);
+          const data = await response.json();
+
+          if (data.success) {
+            resultDiv.innerHTML = `
+              ✅ Login successful!<br><br>
+              <a href="${data.fileUrl}" download="${data.fileName}" target="_blank" rel="noopener noreferrer">
+                👉 Click here to download <b>${data.fileName}</b>
+              </a>
+            `;
+          } else {
+            resultDiv.innerHTML = `<span style="color:red;">❌ Invalid mobile number or password.</span>`;
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          resultDiv.innerHTML = "<span style='color:red;'>⚠️ Server error. Please try again later.</span>";
+        }
+      }
+    </script>
+  </body>
+</html>
