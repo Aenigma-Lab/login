@@ -6,15 +6,34 @@
   <title>Secure Document Download</title>
   <style>
     body {
+      margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f1f1f1;
-      padding: 40px 20px;
-      max-width: 450px;
-      margin: 40px auto;
+      background: linear-gradient(to bottom right, #007BFF, #00c6ff);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    .navbar {
+      width: 100%;
+      background-color: #004080;
+      color: white;
+      padding: 15px 30px;
+      font-size: 20px;
+      font-weight: bold;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    .container {
       background-color: white;
+      padding: 40px 20px;
+      margin-top: 40px;
+      max-width: 480px;
+      width: 90%;
       border-radius: 12px;
       box-shadow: 0 0 16px rgba(0,0,0,0.12);
-      color: #333;
     }
 
     h2 {
@@ -32,7 +51,6 @@
       border-radius: 8px;
       border: 1.5px solid #ccc;
       box-sizing: border-box;
-      transition: border-color 0.3s ease;
     }
 
     input:focus {
@@ -47,7 +65,6 @@
       border: none;
       cursor: pointer;
       font-weight: 700;
-      transition: background-color 0.3s ease;
     }
 
     button:hover {
@@ -77,23 +94,10 @@
       padding: 8px 12px;
       background: #f9f9f9;
       border-radius: 6px;
-      transition: background-color 0.2s ease;
     }
 
     #result ul li:hover {
       background-color: #e9f0ff;
-    }
-
-    #result a {
-      color: #007BFF;
-      text-decoration: none;
-      font-weight: 600;
-      display: block;
-      word-break: break-word;
-    }
-
-    #result a:hover {
-      text-decoration: underline;
     }
 
     .error {
@@ -108,13 +112,17 @@
   </style>
 </head>
 <body>
-  <h2>Secure Document Download</h2>
+  <div class="navbar">🔐 Secure Download Portal</div>
 
-  <input type="text" id="mobile" placeholder="Enter your Mobile Number" />
-  <input type="password" id="password" placeholder="Enter your Password" />
-  <button onclick="login()">Login & Download</button>
+  <div class="container">
+    <h2>Download Your Files</h2>
 
-  <div id="result"></div>
+    <input type="text" id="mobile" placeholder="Enter your Mobile Number" />
+    <input type="password" id="password" placeholder="Enter your Password" />
+    <button onclick="login()">Login & Download</button>
+
+    <div id="result"></div>
+  </div>
 
   <script>
     function login() {
@@ -128,20 +136,22 @@
         return;
       }
 
-      // Remove previous JSONP script if any
       const oldScript = document.getElementById('jsonpScript');
       if (oldScript) oldScript.remove();
 
-      // Define global callback function for JSONP response
       window.handleResponse = function(response) {
         if (response.success && response.files && response.files.length > 0) {
-          let listItems = response.files.map(file => `
-            <li>
-              <a href="${file.fileUrl}" target="_blank" download="${file.fileName}">
-                📄 ${file.fileName}
-              </a>
-            </li>
-          `).join('');
+          let listItems = response.files.map(file => {
+            const fileId = extractFileId(file.fileUrl);
+            const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+            return `
+              <li>
+                <a href="${downloadUrl}" download="${file.fileName}" onclick="triggerDirectDownload('${downloadUrl}')">
+                  📄 ${file.fileName}
+                </a>
+              </li>
+            `;
+          }).join('');
 
           resultDiv.innerHTML = `
             <span class="success">✅ Login successful! Download your files below:</span>
@@ -152,18 +162,29 @@
         }
       };
 
-      // JSONP script setup
       const script = document.createElement('script');
       script.id = 'jsonpScript';
       const baseUrl = 'https://script.google.com/macros/s/AKfycbwgs3NCh9afUu8edGBE8VwLALKMl78dDcfHEOAH8lPlPZDfUXfI8S9vm1fWcFrc2xBa/exec';
       script.src = `${baseUrl}?mobile=${encodeURIComponent(mobile)}&password=${encodeURIComponent(password)}&callback=handleResponse`;
-
-      // Error handler if Apps Script is unreachable
       script.onerror = () => {
         resultDiv.innerHTML = "<span class='error'>⚠️ Failed to connect to server. Please try again later.</span>";
       };
-
       document.body.appendChild(script);
+    }
+
+    function extractFileId(url) {
+      const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      return match ? match[1] : '';
+    }
+
+    function triggerDirectDownload(url) {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = '';
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     }
   </script>
 </body>
