@@ -2,190 +2,40 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Secure Document Download</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Document</title>
+
+  
+  <link rel="stylesheet" href="style.css">
   <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to bottom right, #007BFF, #00c6ff);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-    }
-
-    .navbar {
-      width: 100%;
-      background-color: #004080;
-      color: white;
-      padding: 15px 30px;
-      font-size: 20px;
-      font-weight: bold;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    }
-
-    .container {
-      background-color: white;
-      padding: 40px 20px;
-      margin-top: 40px;
-      max-width: 480px;
-      width: 90%;
-      border-radius: 12px;
-      box-shadow: 0 0 16px rgba(0,0,0,0.12);
-    }
-
-    h2 {
-      text-align: center;
-      color: #222;
-      margin-bottom: 25px;
-      font-weight: 700;
-    }
-
-    input, button {
-      width: 100%;
-      padding: 14px 16px;
-      margin: 12px 0;
-      font-size: 16px;
-      border-radius: 8px;
-      border: 1.5px solid #ccc;
-      box-sizing: border-box;
-    }
-
-    input:focus {
-      border-color: #007BFF;
-      outline: none;
-      box-shadow: 0 0 6px rgba(0, 123, 255, 0.5);
-    }
-
-    button {
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-weight: 700;
-    }
-
-    button:hover {
-      background-color: #0056b3;
-    }
-
-    #result {
-      margin-top: 30px;
-      font-size: 16px;
-      text-align: center;
-      min-height: 60px;
-    }
-
-    #result ul {
-      list-style-type: none;
-      padding: 0;
-      margin: 15px 0 0 0;
-      text-align: left;
-      max-height: 240px;
-      overflow-y: auto;
-      border-top: 1px solid #eee;
-      border-bottom: 1px solid #eee;
-    }
-
-    #result ul li {
-      margin: 10px 0;
-      padding: 8px 12px;
-      background: #f9f9f9;
-      border-radius: 6px;
-    }
-
-    #result ul li:hover {
-      background-color: #e9f0ff;
-    }
-
-    .error {
-      color: #d9534f;
-      font-weight: 600;
-    }
-
-    .success {
-      color: #28a745;
-      font-weight: 600;
-    }
+    .error { color: red; }
+    .success { color: green; }
   </style>
 </head>
 <body>
-  <div class="navbar">🔐 Secure Download Portal</div>
+  <div class="wrapper">
+    <header class="section header">
+      <div class="trapezoid"></div>
+      <div class="header__text">
+        <h2>PROJECT PORTAL</h2>
+        <p>Sign in to your account and download your project files.</p>
+      </div>
+    </header>
 
-  <div class="container">
-    <h2>Download Your Files</h2>
-
-    <input type="text" id="mobile" placeholder="Enter your Mobile Number" />
-    <input type="password" id="password" placeholder="Enter your Password" />
-    <button onclick="login()">Login & Download</button>
-
+   
+   <!-- Sign In Form -->
+    <section class="section sign-in">
+    <form id="loginForm">
+        <input type="tel" name="mobile" id="mobile" placeholder="Your Mobile Number" required>
+        <input type="password" name="password" id="password" placeholder="Password" required>
+        <button type="submit">Sign In</button>
+        <p id="loginError" style="color: red; display: none;">Invalid mobile number or password.</p>
+    </form>
     <div id="result"></div>
+    </section>
   </div>
 
-  <script>
-    function login() {
-      const mobile = document.getElementById('mobile').value.trim();
-      const password = document.getElementById('password').value.trim();
-      const resultDiv = document.getElementById('result');
-      resultDiv.innerHTML = '🔄 Validating...';
-
-      if (!mobile || !password) {
-        resultDiv.innerHTML = "<span class='error'>❗ Please enter both mobile number and password.</span>";
-        return;
-      }
-
-      const oldScript = document.getElementById('jsonpScript');
-      if (oldScript) oldScript.remove();
-
-      window.handleResponse = function(response) {
-        if (response.success && response.files && response.files.length > 0) {
-          let listItems = response.files.map(file => {
-            const fileId = extractFileId(file.fileUrl);
-            const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
-            return `
-              <li>
-                <a href="${downloadUrl}" download="${file.fileName}" onclick="triggerDirectDownload('${downloadUrl}')">
-                  📄 ${file.fileName}
-                </a>
-              </li>
-            `;
-          }).join('');
-
-          resultDiv.innerHTML = `
-            <span class="success">✅ Login successful! Download your files below:</span>
-            <ul>${listItems}</ul>
-          `;
-        } else {
-          resultDiv.innerHTML = "<span class='error'>❌ Invalid mobile number or password.</span>";
-        }
-      };
-
-      const script = document.createElement('script');
-      script.id = 'jsonpScript';
-      const baseUrl = 'https://script.google.com/macros/s/AKfycbwgs3NCh9afUu8edGBE8VwLALKMl78dDcfHEOAH8lPlPZDfUXfI8S9vm1fWcFrc2xBa/exec';
-      script.src = `${baseUrl}?mobile=${encodeURIComponent(mobile)}&password=${encodeURIComponent(password)}&callback=handleResponse`;
-      script.onerror = () => {
-        resultDiv.innerHTML = "<span class='error'>⚠️ Failed to connect to server. Please try again later.</span>";
-      };
-      document.body.appendChild(script);
-    }
-
-    function extractFileId(url) {
-      const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-      return match ? match[1] : '';
-    }
-
-    function triggerDirectDownload(url) {
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = '';
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }
-  </script>
+  <!-- Link to JS -->
+  <script src="script.js"></script>
 </body>
 </html>
